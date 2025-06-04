@@ -43,9 +43,12 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error al cerrar sesión: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error al cerrar sesión: $e'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
     }
   }
 
@@ -58,21 +61,22 @@ class _HomeScreenState extends State<HomeScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Card(
-        elevation: 6,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        margin: const EdgeInsets.symmetric(vertical: 10),
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        margin: const EdgeInsets.symmetric(vertical: 12),
+        color: Colors.grey[100],
         child: ListTile(
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 24,
-            vertical: 16,
-          ),
-          leading: Icon(icon, size: 40, color: Colors.deepPurple),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          leading: Icon(icon, size: 36, color: Colors.deepPurple),
           title: Text(
             title,
-            style: const TextStyle(fontWeight: FontWeight.bold),
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
           ),
-          subtitle: Text(subtitle),
-          trailing: const Icon(Icons.arrow_forward_ios),
+          subtitle: Text(
+            subtitle,
+            style: const TextStyle(fontSize: 14),
+          ),
+          trailing: const Icon(Icons.arrow_forward_ios, size: 20),
         ),
       ),
     );
@@ -83,8 +87,11 @@ class _HomeScreenState extends State<HomeScreen> {
     return WillPopScope(
       onWillPop: () async => false,
       child: Scaffold(
+        backgroundColor: Colors.white,
         appBar: AppBar(
           title: const Text('Pluma AI'),
+          backgroundColor: Colors.deepPurple,
+          foregroundColor: Colors.white,
           automaticallyImplyLeading: false,
           actions: [
             IconButton(
@@ -101,24 +108,27 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: ListView(
                   children: [
                     Text(
-                      '👋 Bienvenido/a, $_userName',
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                      'Bienvenido/a, $_userName',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.deepPurple,
+                          ),
                     ),
                     if (_userEmail.isNotEmpty)
-                      Text(
-                        _userEmail,
-                        style: Theme.of(context).textTheme.bodyMedium,
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          _userEmail,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
                       ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 30),
 
                     _buildModuleCard(
                       icon: Icons.mic,
                       title: 'Ideas con voz o texto',
                       subtitle: 'Graba o escribe y mejora tus ideas con IA',
-                      onTap: () {
-                        Navigator.pushNamed(context, '/llm-idea');
-                      },
+                      onTap: () => Navigator.pushNamed(context, '/llm-idea'),
                     ),
                     _buildModuleCard(
                       icon: Icons.history,
@@ -131,15 +141,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text(
-                                'Debes iniciar sesión para acceder al historial.',
-                              ),
+                              content: Text('Debes iniciar sesión para acceder al historial.'),
                             ),
                           );
                         }
                       },
                     ),
-
                     _buildModuleCard(
                       icon: Icons.show_chart,
                       title: 'Progreso',
@@ -151,30 +158,17 @@ class _HomeScreenState extends State<HomeScreen> {
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text(
-                                'Debes iniciar sesión para acceder al progreso.',
-                              ),
+                              content: Text('Debes iniciar sesión para acceder al progreso.'),
                             ),
                           );
                         }
                       },
                     ),
-
                     _buildModuleCard(
                       icon: Icons.person,
                       title: 'Perfil',
                       subtitle: 'Edita tu información personal',
-                      onTap: () {
-                        Navigator.pushNamed(context, '/profile');
-                      },
-                    ),
-                    _buildModuleCard(
-                      icon: Icons.settings,
-                      title: 'Configuraciones',
-                      subtitle: 'Tema, accesibilidad, y más',
-                      onTap: () {
-                        Navigator.pushNamed(context, '/settings');
-                      },
+                      onTap: () => Navigator.pushNamed(context, '/profile'),
                     ),
                   ],
                 ),

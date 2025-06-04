@@ -31,7 +31,7 @@ class _TextInputScreenState extends State<TextInputScreen> {
         Uri.parse("https://openrouter.ai/api/v1/chat/completions"),
         headers: {
           'Authorization':
-              'Bearer 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',
+              'Bearer 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',
           'Content-Type': 'application/json',
           'HTTP-Referer': 'https://writevibe.app',
           'X-Title': 'WriteVibeAssistant',
@@ -62,7 +62,6 @@ class _TextInputScreenState extends State<TextInputScreen> {
           _isLoading = false;
         });
 
-        // Guardar en historial
         try {
           await HistoryService().savePromptHistory(
             recognizedText: inputText,
@@ -101,54 +100,85 @@ class _TextInputScreenState extends State<TextInputScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Entrada de texto')),
+      appBar: AppBar(
+        title: const Text('Editor de Estilo'),
+        centerTitle: true,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Prompt LLM (interno):',
-              style: Theme.of(context).textTheme.titleMedium,
+              'Prompt Interno:',
+              style: theme.textTheme.titleMedium,
             ),
+            const SizedBox(height: 4),
             Text(
-              'Eres un experto en redacción, poesía, discursos y ensayos...',
-              style: const TextStyle(fontStyle: FontStyle.italic),
+              "Eres un experto en redacción, poesía, discursos y ensayos. Mejora el texto sin alterar su estilo o mensaje original...",
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontStyle: FontStyle.italic,
+                color: Colors.grey[600],
+              ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             TextField(
               controller: _textController,
-              maxLines: 5,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
+              maxLines: 6,
+              decoration: InputDecoration(
                 hintText: 'Escribe aquí tu idea o texto...',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
             const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _isLoading ? null : _processText,
-              child: _isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text('Generar Insight'),
+            SizedBox(
+              height: 48,
+              child: ElevatedButton.icon(
+                onPressed: _isLoading ? null : _processText,
+                icon: _isLoading
+                    ? const SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.auto_fix_high),
+                label: Text(
+                  _isLoading ? 'Procesando...' : 'Mejorar Texto',
+                  style: const TextStyle(fontSize: 16),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.colorScheme.primary,
+                  foregroundColor: theme.colorScheme.onPrimary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
             ),
             const SizedBox(height: 24),
             if (_insight != null)
               Expanded(
                 child: Card(
-                  elevation: 2,
+                  elevation: 3,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  color: theme.colorScheme.surfaceVariant,
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Scrollbar(
-                      thumbVisibility: true,
                       child: SingleChildScrollView(
-                        child: Text(
+                        child: SelectableText(
                           _insight!,
-                          style: const TextStyle(fontSize: 16),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            height: 1.5,
+                          ),
                         ),
                       ),
                     ),

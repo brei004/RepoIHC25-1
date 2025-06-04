@@ -34,10 +34,7 @@ class _SpeechScreenState extends State<SpeechScreen> {
     ),
     'mejorar': HighlightedWord(
       onTap: () => print('mejorar'),
-      textStyle: const TextStyle(
-        color: Colors.red,
-        fontWeight: FontWeight.bold,
-      ),
+      textStyle: const TextStyle(color: Colors.green),
     ),
     'podemos': HighlightedWord(
       onTap: () => print('podemos'),
@@ -55,8 +52,19 @@ class _SpeechScreenState extends State<SpeechScreen> {
     ),
   };
 
-  final List<String> _palabrasNegativas = ['odio', 'triste', 'malo', 'horrible', 'feo'];
-  final List<String> _palabrasPositivas = ['bueno', 'feliz', 'excelente', 'genial'];
+  final List<String> _palabrasNegativas = [
+    'odio',
+    'triste',
+    'malo',
+    'horrible',
+    'feo',
+  ];
+  final List<String> _palabrasPositivas = [
+    'bueno',
+    'feliz',
+    'excelente',
+    'genial',
+  ];
 
   late stt.SpeechToText _speech;
   bool _isListening = false;
@@ -75,8 +83,12 @@ class _SpeechScreenState extends State<SpeechScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: _backgroundColor,
       appBar: AppBar(
-        title: Text('Confianza: ${(_confidence * 100.0).toStringAsFixed(1)}%'),
+        title: Text('Confianza: ${(_confidence * 100).toStringAsFixed(1)}%'),
+        backgroundColor: Colors.deepPurple,
+        foregroundColor: Colors.white,
+        elevation: 2,
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: AvatarGlow(
@@ -90,65 +102,82 @@ class _SpeechScreenState extends State<SpeechScreen> {
         ),
       ),
       body: SingleChildScrollView(
-        child: Container(
-          color: _backgroundColor,
-          padding: const EdgeInsets.fromLTRB(30.0, 30.0, 30.0, 150.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Prompt del Asistente',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              widget.prompt,
+              style: const TextStyle(fontStyle: FontStyle.italic, fontSize: 16),
+            ),
+            const SizedBox(height: 24),
+            TextHighlight(
+              text: _text,
+              words: _highlights,
+              textStyle: const TextStyle(
+                fontSize: 28,
+                height: 1.5,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 24),
+            if (_isProcessing) const Center(child: CircularProgressIndicator()),
+            if (_llmResponse != null) ...[
               Text(
-                'Prompt LLM:',
-                style: Theme.of(context).textTheme.titleMedium,
+                'Respuesta del Asistente:',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              Text(
-                widget.prompt,
-                style: const TextStyle(fontStyle: FontStyle.italic),
-              ),
-              const SizedBox(height: 24),
-              TextHighlight(
-                text: _text,
-                words: _highlights,
-                textStyle: const TextStyle(
-                  fontSize: 32.0,
-                  color: Colors.black,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-              if (_isProcessing)
-                const Center(child: CircularProgressIndicator()),
-              if (_llmResponse != null) ...[
-                const SizedBox(height: 24),
-                const Text(
-                  'Respuesta del asistente:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                Card(
+              Container(
+                decoration: BoxDecoration(
                   color: Colors.blue[50],
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: SizedBox(
-                      height: 200, // Altura fija con scroll interno
-                      child: SingleChildScrollView(
-                        child: Text(
-                          _llmResponse!,
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                      ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.all(16),
+                child: SizedBox(
+                  height: 180,
+                  child: SingleChildScrollView(
+                    child: Text(
+                      _llmResponse!,
+                      style: const TextStyle(fontSize: 16, height: 1.5),
                     ),
                   ),
                 ),
-              ],
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _text != 'Presiona el botón y comienza a hablar' && !_isProcessing
-                    ? () => _enviarTextoAlLLM(_text)
-                    : null,
-                child: const Text('Enviar a LLM'),
               ),
             ],
-          ),
+            const SizedBox(height: 32),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed:
+                    _text != 'Presiona el botón y comienza a hablar' &&
+                        !_isProcessing
+                    ? () => _enviarTextoAlLLM(_text)
+                    : null,
+                icon: const Icon(Icons.send),
+                label: const Text('Enviar a LLM'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: Colors.deepPurple,
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: Colors.grey[300],
+                  textStyle: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -174,6 +203,7 @@ class _SpeechScreenState extends State<SpeechScreen> {
               }
 
               final lowerText = _text.toLowerCase();
+
               if (_palabrasNegativas.any((p) => lowerText.contains(p))) {
                 _backgroundColor = Colors.red.shade100;
                 Vibration.hasVibrator().then((hasVibrator) {
@@ -203,7 +233,7 @@ class _SpeechScreenState extends State<SpeechScreen> {
     final url = Uri.parse("https://openrouter.ai/api/v1/chat/completions");
     final headers = {
       'Authorization':
-          'Bearer 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',
+          'Bearer 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',
       'Content-Type': 'application/json',
       'HTTP-Referer': 'https://writevibe.app',
       'X-Title': 'WriteVibeAssistant',
@@ -214,10 +244,10 @@ class _SpeechScreenState extends State<SpeechScreen> {
         {
           "role": "system",
           "content":
-              "Responde brevemente maximo 2 oraciones, no uses caracteres especiales, no uses emojis, no uses comillas, no uses guiones, no uses puntos ni comas. Responde como un asistente de escritura que ayuda a los usuarios a mejorar sus ideas y textos."
+              "Responde brevemente maximo 2 oraciones, no uses caracteres especiales, no uses emojis, no uses comillas, no uses guiones, no uses puntos ni comas. Responde como un asistente de escritura que ayuda a los usuarios a mejorar sus ideas y textos.",
         },
-        {"role": "user", "content": prompt}
-      ]
+        {"role": "user", "content": prompt},
+      ],
     });
 
     try {

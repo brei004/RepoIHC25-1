@@ -20,42 +20,61 @@ class HistoryDetailScreen extends StatelessWidget {
         ? DateFormat('dd MMM yyyy - HH:mm').format(timestamp)
         : 'Fecha no disponible';
 
+    final primaryColor = const Color(0xFF2C3E50);
+    final accentColor = const Color(0xFF18BC9C);
+    final cardBackground = Colors.white;
+
     return Scaffold(
+      backgroundColor: primaryColor,
       appBar: AppBar(
-        title: const Text('Detalle del Historial'),
+        backgroundColor: primaryColor,
+        elevation: 0,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text(
+          'Detalle del Historial',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.1,
+          ),
+        ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16),
         child: ListView(
           children: [
             _buildSectionCard(
               icon: Icons.mic,
               title: 'Entrada del usuario',
               content: input,
-              context: context,
+              accentColor: accentColor,
+              cardBackground: cardBackground,
             ),
             const SizedBox(height: 16),
             _buildSectionCard(
               icon: Icons.question_answer,
               title: 'Prompt enviado a la IA',
               content: prompt,
-              context: context,
+              accentColor: accentColor,
+              cardBackground: cardBackground,
             ),
             const SizedBox(height: 16),
             _buildSectionCard(
               icon: Icons.smart_toy,
               title: 'Respuesta generada',
               content: response,
-              context: context,
+              accentColor: accentColor,
+              cardBackground: cardBackground,
             ),
             const SizedBox(height: 24),
             Row(
               children: [
-                const Icon(Icons.access_time, size: 16, color: Colors.grey),
+                const Icon(Icons.access_time, size: 16, color: Colors.white70),
                 const SizedBox(width: 8),
                 Text(
                   formattedDate,
-                  style: const TextStyle(color: Colors.grey),
+                  style: const TextStyle(color: Colors.white70),
                 ),
               ],
             ),
@@ -69,11 +88,14 @@ class HistoryDetailScreen extends StatelessWidget {
     required IconData icon,
     required String title,
     required String content,
-    required BuildContext context,
+    required Color accentColor,
+    required Color cardBackground,
   }) {
     return Card(
-      elevation: 3,
+      color: cardBackground,
+      elevation: 5,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shadowColor: accentColor.withOpacity(0.4),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -81,20 +103,26 @@ class HistoryDetailScreen extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(icon, size: 20, color: Theme.of(context).primaryColor),
+                Icon(icon, size: 22, color: accentColor),
                 const SizedBox(width: 8),
                 Text(
                   title,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                    letterSpacing: 0.8,
+                    color: Colors.black87,
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 12),
             SelectableText(
               content.isNotEmpty ? content : 'Sin contenido',
-              style: Theme.of(context).textTheme.bodyMedium,
+              style: const TextStyle(
+                fontSize: 15,
+                color: Colors.black87,
+              ),
             ),
           ],
         ),
