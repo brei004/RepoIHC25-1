@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "217022951498",
+    "project_id": "pluma-ai-71f24",
+    "storage_bucket": "pluma-ai-71f24.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:217022951498:android:c05d151ddc3c10408876b3",
+        "android_client_info": {
+          "package_name": "com.example.pluma_ai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCqURUdeAetAlMvtLZDkQpSt0uz3w832lY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
