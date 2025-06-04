@@ -4,6 +4,8 @@ import 'features/auth/screens/intro_screen.dart';
 import 'features/auth/screens/login_screen.dart';
 import 'features/auth/screens/register_screen.dart';
 import 'features/home/screens/home_screen.dart';
+import 'services/auth_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class PlumaApp extends StatelessWidget {
   const PlumaApp({super.key});
@@ -17,15 +19,24 @@ class PlumaApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      // Mejor poner la pantalla inicial de bienvenida o splash si la tienes, si no, la intro
-      initialRoute: '/intro', 
-
+      home: StreamBuilder<User?>(
+        stream: AuthService().authStateChanges,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          }
+          
+          if (snapshot.hasData) {
+            return const HomeScreen();
+          }
+          
+          return const IntroScreen();
+        },
+      ),
       routes: {
-        '/intro': (_) => const IntroScreen(),
         '/auth-choice': (_) => const AuthChoiceScreen(),
         '/login': (_) => const LoginScreen(),
         '/register': (_) => const RegisterScreen(),
-        // Agrega aquí la ruta principal o home si la tienes
         '/home': (_) => const HomeScreen(),
       },
     );

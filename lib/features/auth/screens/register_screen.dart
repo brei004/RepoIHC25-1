@@ -19,19 +19,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void _register() async {
     if (_formKey.currentState!.validate()) {
       try {
-        await _auth.registerWithEmail(
+        final userCredential = await _auth.registerWithEmail(
           _emailController.text,
           _passwordController.text,
         );
-        if (!mounted) return; 
+
+        // Actualizar el displayName del usuario
+        await userCredential.user?.updateDisplayName(_nameController.text);
+
+        if (!mounted) return;
         Navigator.pushReplacementNamed(context, '/home');
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al registrar: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error al registrar: $e')));
       }
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -45,21 +50,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(labelText: 'Nombre'),
-                validator: (value) => value!.isEmpty ? 'Ingresa tu nombre' : null,
+                validator: (value) =>
+                    value!.isEmpty ? 'Ingresa tu nombre' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Correo electrónico'),
+                decoration: const InputDecoration(
+                  labelText: 'Correo electrónico',
+                ),
                 keyboardType: TextInputType.emailAddress,
-                validator: (value) => value!.isEmpty ? 'Ingresa tu correo' : null,
+                validator: (value) =>
+                    value!.isEmpty ? 'Ingresa tu correo' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _passwordController,
                 decoration: const InputDecoration(labelText: 'Contraseña'),
                 obscureText: true,
-                validator: (value) => value!.length < 6 ? 'Mínimo 6 caracteres' : null,
+                validator: (value) =>
+                    value!.length < 6 ? 'Mínimo 6 caracteres' : null,
               ),
               const SizedBox(height: 24),
               ElevatedButton(
