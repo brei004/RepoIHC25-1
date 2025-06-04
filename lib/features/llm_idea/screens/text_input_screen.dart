@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:pluma_ai/features/history/services/history_service.dart';
 
 class TextInputScreen extends StatefulWidget {
   final String prompt;
@@ -30,7 +31,7 @@ class _TextInputScreenState extends State<TextInputScreen> {
         Uri.parse("https://openrouter.ai/api/v1/chat/completions"),
         headers: {
           'Authorization':
-              'Bearer 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',
+              'Bearer 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',
           'Content-Type': 'application/json',
           'HTTP-Referer': 'https://writevibe.app',
           'X-Title': 'WriteVibeAssistant',
@@ -60,6 +61,17 @@ class _TextInputScreenState extends State<TextInputScreen> {
           _insight = cleanContent;
           _isLoading = false;
         });
+
+        // Guardar en historial
+        try {
+          await HistoryService().savePromptHistory(
+            recognizedText: inputText,
+            prompt: widget.prompt,
+            llmResponse: cleanContent,
+          );
+        } catch (e) {
+          debugPrint('No se guardó historial: $e');
+        }
       } else {
         setState(() {
           _insight = "Error al obtener respuesta: ${response.statusCode}";
@@ -75,7 +87,6 @@ class _TextInputScreenState extends State<TextInputScreen> {
   }
 
   String _cleanLLMResponse(String raw) {
-    // Limpia caracteres tipo #, *, markdown innecesario
     return raw
         .replaceAll(RegExp(r'[#*`>-]'), '')
         .replaceAll(RegExp(r'\n{2,}'), '\n')
@@ -127,13 +138,20 @@ class _TextInputScreenState extends State<TextInputScreen> {
             ),
             const SizedBox(height: 24),
             if (_insight != null)
-              Card(
-                elevation: 2,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Text(
-                    _insight!,
-                    style: const TextStyle(fontSize: 16),
+              Expanded(
+                child: Card(
+                  elevation: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Scrollbar(
+                      thumbVisibility: true,
+                      child: SingleChildScrollView(
+                        child: Text(
+                          _insight!,
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),

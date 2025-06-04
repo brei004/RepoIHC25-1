@@ -128,7 +128,15 @@ class _SpeechScreenState extends State<SpeechScreen> {
                   color: Colors.blue[50],
                   child: Padding(
                     padding: const EdgeInsets.all(12),
-                    child: Text(_llmResponse!),
+                    child: SizedBox(
+                      height: 200, // Altura fija con scroll interno
+                      child: SingleChildScrollView(
+                        child: Text(
+                          _llmResponse!,
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -195,7 +203,7 @@ class _SpeechScreenState extends State<SpeechScreen> {
     final url = Uri.parse("https://openrouter.ai/api/v1/chat/completions");
     final headers = {
       'Authorization':
-          'Bearer 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',
+          'Bearer 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',
       'Content-Type': 'application/json',
       'HTTP-Referer': 'https://writevibe.app',
       'X-Title': 'WriteVibeAssistant',
@@ -223,7 +231,6 @@ class _SpeechScreenState extends State<SpeechScreen> {
           _isProcessing = false;
         });
 
-        // Guardar en historial
         try {
           await HistoryService().savePromptHistory(
             recognizedText: prompt,
