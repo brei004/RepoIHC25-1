@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:pluma_ai/services/auth_service.dart';
+import 'package:pluma_ai/features/auth/services/auth_service.dart';
 
 class AuthChoiceScreen extends StatelessWidget {
   const AuthChoiceScreen({super.key});

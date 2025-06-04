@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:pluma_ai/services/auth_service.dart';
+import 'package:pluma_ai/features/auth/services/auth_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,33 +23,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadUserData() async {
     final user = _auth.currentUser;
-    
     if (user != null) {
-      // Para usuarios registrados con email
-      if (user.providerData.any((info) => info.providerId == 'password')) {
-        // Verificar si tenemos el nombre en Firestore (si lo guardaste allí)
-        // Si no, usar el email como nombre
-        setState(() {
-          _userName = user.displayName ?? user.email?.split('@')[0] ?? 'Usuario';
-          _userEmail = user.email ?? '';
-        });
-      }
-      // Para usuarios de Google
-      else if (user.providerData.any((info) => info.providerId == 'google.com')) {
-        setState(() {
-          _userName = user.displayName ?? 'Usuario Google';
-          _userEmail = user.email ?? '';
-        });
-      }
-      // Para invitados
-      else if (user.isAnonymous) {
-        setState(() {
-          _userName = 'Invitado';
-          _userEmail = '';
-        });
-      }
+      setState(() {
+        _userName = user.displayName ?? user.email?.split('@')[0] ?? 'Usuario';
+        _userEmail = user.email ?? '';
+      });
     }
-
     setState(() => _isLoading = false);
   }
 
@@ -57,11 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       await _auth.signOut();
       if (!mounted) return;
-      Navigator.pushNamedAndRemoveUntil(
-        context, 
-        '/auth-choice', 
-        (Route<dynamic> route) => false
-      );
+      Navigator.pushNamedAndRemoveUntil(context, '/auth-choice', (route) => false);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -70,17 +45,37 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Widget _buildModuleCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Card(
+        elevation: 6,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        margin: const EdgeInsets.symmetric(vertical: 10),
+        child: ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          leading: Icon(icon, size: 40, color: Colors.deepPurple),
+          title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+          subtitle: Text(subtitle),
+          trailing: const Icon(Icons.arrow_forward_ios),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () async {
-        // Evita que el botón de retroceso cierre la sesión
-        return false;
-      },
+      onWillPop: () async => false,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Pluma AI'),
-          automaticallyImplyLeading: false, // Oculta el botón de retroceso
+          automaticallyImplyLeading: false,
           actions: [
             IconButton(
               icon: const Icon(Icons.logout),
@@ -91,30 +86,60 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         body: _isLoading
             ? const Center(child: CircularProgressIndicator())
-            : Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+            : Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: ListView(
                   children: [
                     Text(
-                      '¡Bienvenido/a, $_userName!',
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                      textAlign: TextAlign.center,
+                      '👋 Bienvenido/a, $_userName',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(height: 16),
                     if (_userEmail.isNotEmpty)
                       Text(
                         _userEmail,
-                        style: Theme.of(context).textTheme.bodyLarge,
+                        style: Theme.of(context).textTheme.bodyMedium,
                       ),
-                    const SizedBox(height: 32),
-                    // Puedes agregar más contenido aquí
-                    ElevatedButton(
-                      onPressed: () {
-                        // Acción adicional
+                    const SizedBox(height: 24),
+                    
+                    _buildModuleCard(
+                      icon: Icons.mic,
+                      title: 'Ideas con voz o texto',
+                      subtitle: 'Graba o escribe y mejora tus ideas con IA',
+                      onTap: () {
+                        Navigator.pushNamed(context, '/llm-idea');
                       },
-                      child: const Text('Comenzar'),
+                    ),
+                    _buildModuleCard(
+                      icon: Icons.history,
+                      title: 'Historial',
+                      subtitle: 'Revisa tus creaciones pasadas',
+                      onTap: () {
+                        Navigator.pushNamed(context, '/history');
+                      },
+                    ),
+                    _buildModuleCard(
+                      icon: Icons.show_chart,
+                      title: 'Progreso',
+                      subtitle: 'Mira cómo has mejorado',
+                      onTap: () {
+                        Navigator.pushNamed(context, '/progress');
+                      },
+                    ),
+                    _buildModuleCard(
+                      icon: Icons.person,
+                      title: 'Perfil',
+                      subtitle: 'Edita tu información personal',
+                      onTap: () {
+                        Navigator.pushNamed(context, '/profile');
+                      },
+                    ),
+                    _buildModuleCard(
+                      icon: Icons.settings,
+                      title: 'Configuraciones',
+                      subtitle: 'Tema, accesibilidad, y más',
+                      onTap: () {
+                        Navigator.pushNamed(context, '/settings');
+                      },
                     ),
                   ],
                 ),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:pluma_ai/services/auth_service.dart'; // Make sure this path matches where AuthService is defined
+import 'package:pluma_ai/features/auth/services/auth_service.dart'; // Make sure this path matches where AuthService is defined
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});

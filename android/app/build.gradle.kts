@@ -9,7 +9,7 @@ plugins {
 android {
     namespace = "com.example.pluma_ai"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = "27.0.12077973"
+    ndkVersion = "27.2.12479018"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -30,6 +30,7 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
+    namespace = "com.example.record"
 
     buildTypes {
         release {
