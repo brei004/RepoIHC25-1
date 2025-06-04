@@ -11,6 +11,7 @@ import 'features/llm_idea/screens/prompt_setup_screen.dart';
 import 'features/llm_idea/screens/input_choice_screen.dart';
 import 'features/llm_idea/screens/text_input_screen.dart';
 import 'features/llm_idea/screens/speech_screen.dart';
+import 'features/history/screens/history_screen.dart';
 
 
 class PlumaApp extends StatelessWidget {
@@ -59,6 +60,8 @@ class PlumaApp extends StatelessWidget {
           final prompt = ModalRoute.of(context)!.settings.arguments as String;
           return SpeechScreen(prompt: prompt);
         },
+        '/history': (context) => const HistoryScreen(),
+
       },
     );
   }

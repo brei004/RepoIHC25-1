@@ -36,12 +36,16 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       await _auth.signOut();
       if (!mounted) return;
-      Navigator.pushNamedAndRemoveUntil(context, '/auth-choice', (route) => false);
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        '/auth-choice',
+        (route) => false,
+      );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al cerrar sesión: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error al cerrar sesión: $e')));
     }
   }
 
@@ -58,9 +62,15 @@ class _HomeScreenState extends State<HomeScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         margin: const EdgeInsets.symmetric(vertical: 10),
         child: ListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 24,
+            vertical: 16,
+          ),
           leading: Icon(icon, size: 40, color: Colors.deepPurple),
-          title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+          title: Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
           subtitle: Text(subtitle),
           trailing: const Icon(Icons.arrow_forward_ios),
         ),
@@ -92,7 +102,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Text(
                       '👋 Bienvenido/a, $_userName',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     if (_userEmail.isNotEmpty)
                       Text(
@@ -100,7 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     const SizedBox(height: 24),
-                    
+
                     _buildModuleCard(
                       icon: Icons.mic,
                       title: 'Ideas con voz o texto',
@@ -114,17 +125,41 @@ class _HomeScreenState extends State<HomeScreen> {
                       title: 'Historial',
                       subtitle: 'Revisa tus creaciones pasadas',
                       onTap: () {
-                        Navigator.pushNamed(context, '/history');
+                        final user = FirebaseAuth.instance.currentUser;
+                        if (user != null && !user.isAnonymous) {
+                          Navigator.pushNamed(context, '/history');
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Debes iniciar sesión para acceder al historial.',
+                              ),
+                            ),
+                          );
+                        }
                       },
                     ),
+
                     _buildModuleCard(
                       icon: Icons.show_chart,
                       title: 'Progreso',
                       subtitle: 'Mira cómo has mejorado',
                       onTap: () {
-                        Navigator.pushNamed(context, '/progress');
+                        final user = FirebaseAuth.instance.currentUser;
+                        if (user != null && !user.isAnonymous) {
+                          Navigator.pushNamed(context, '/progress');
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Debes iniciar sesión para acceder al progreso.',
+                              ),
+                            ),
+                          );
+                        }
                       },
                     ),
+
                     _buildModuleCard(
                       icon: Icons.person,
                       title: 'Perfil',

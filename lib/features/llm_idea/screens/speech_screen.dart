@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:highlight_text/highlight_text.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:vibration/vibration.dart';
+import 'package:pluma_ai/features/history/services/history_service.dart';
 
 class SpeechScreen extends StatefulWidget {
   final String prompt;
@@ -186,26 +187,40 @@ class _SpeechScreenState extends State<SpeechScreen> {
   }
 
   Future<void> _sendToLLM() async {
-    if (_text.isEmpty || _text == 'Presiona el botón y comienza a hablar') return;
-    
+  if (_text.isEmpty || _text == 'Presiona el botón y comienza a hablar') return;
+
+  setState(() {
+    _isProcessing = true;
+    _llmResponse = null;
+  });
+
+  try {
+    // Simulamos respuesta de LLM
+    await Future.delayed(const Duration(seconds: 2));
+    final response = 'Respuesta del LLM para: "$_text" usando prompt: "${widget.prompt}"';
+
     setState(() {
-      _isProcessing = true;
-      _llmResponse = null;
+      _llmResponse = response;
+      _isProcessing = false;
     });
-    
+
+    // Guardar en Firestore solo si hay un usuario autenticado
     try {
-      // Simulamos la llamada al LLM (implementar según tu necesidad)
-      await Future.delayed(const Duration(seconds: 2));
-      
-      setState(() {
-        _llmResponse = 'Respuesta del LLM para: "$_text" usando prompt: "${widget.prompt}"';
-        _isProcessing = false;
-      });
+      await HistoryService().savePromptHistory(
+        recognizedText: _text,
+        prompt: widget.prompt,
+        llmResponse: response,
+      );
     } catch (e) {
-      setState(() {
-        _llmResponse = 'Error al procesar con LLM: $e';
-        _isProcessing = false;
-      });
+      debugPrint('No se guardó historial: $e');
     }
+
+  } catch (e) {
+    setState(() {
+      _llmResponse = 'Error al procesar con LLM: $e';
+      _isProcessing = false;
+    });
   }
+}
+
 }
