@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class TextInputScreen extends StatefulWidget {
   final String prompt;
@@ -23,14 +25,61 @@ class _TextInputScreenState extends State<TextInputScreen> {
       _insight = null;
     });
 
-    // Aquí iría la llamada a la API del LLM usando widget.prompt e inputText
-    // Por ahora simulamos con un delay y respuesta dummy
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      final response = await http.post(
+        Uri.parse("https://openrouter.ai/api/v1/chat/completions"),
+        headers: {
+          'Authorization':
+              'Bearer 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',
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://writevibe.app',
+          'X-Title': 'WriteVibeAssistant',
+        },
+        body: jsonEncode({
+          "model": "deepseek/deepseek-chat:free",
+          "messages": [
+            {
+              "role": "system",
+              "content":
+                  "Eres un experto en redacción, poesía, discursos y ensayos. Mejora el siguiente texto conservando su estilo y mensaje original, pero hazlo más claro, elegante y emotivo. Solo envía el mensaje referente a eso. Muestrame también los cambios que haces, por qué y el resultado final."
+            },
+            {
+              "role": "user",
+              "content": inputText
+            }
+          ]
+        }),
+      );
 
-    setState(() {
-      _insight = 'Insight generado para: "$inputText" usando prompt: "${widget.prompt}"';
-      _isLoading = false;
-    });
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(utf8.decode(response.bodyBytes));
+        final rawContent = decoded['choices'][0]['message']['content'];
+        final cleanContent = _cleanLLMResponse(rawContent);
+
+        setState(() {
+          _insight = cleanContent;
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _insight = "Error al obtener respuesta: ${response.statusCode}";
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _insight = "Error al procesar: $e";
+        _isLoading = false;
+      });
+    }
+  }
+
+  String _cleanLLMResponse(String raw) {
+    // Limpia caracteres tipo #, *, markdown innecesario
+    return raw
+        .replaceAll(RegExp(r'[#*`>-]'), '')
+        .replaceAll(RegExp(r'\n{2,}'), '\n')
+        .trim();
   }
 
   @override
@@ -48,11 +97,11 @@ class _TextInputScreenState extends State<TextInputScreen> {
         child: Column(
           children: [
             Text(
-              'Prompt LLM:',
+              'Prompt LLM (interno):',
               style: Theme.of(context).textTheme.titleMedium,
             ),
             Text(
-              widget.prompt,
+              'Eres un experto en redacción, poesía, discursos y ensayos...',
               style: const TextStyle(fontStyle: FontStyle.italic),
               textAlign: TextAlign.center,
             ),

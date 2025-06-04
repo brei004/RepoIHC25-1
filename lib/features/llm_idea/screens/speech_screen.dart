@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:highlight_text/highlight_text.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:vibration/vibration.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:pluma_ai/features/history/services/history_service.dart';
 
 class SpeechScreen extends StatefulWidget {
@@ -113,7 +115,7 @@ class _SpeechScreenState extends State<SpeechScreen> {
                   fontWeight: FontWeight.w400,
                 ),
               ),
-              if (_isProcessing) 
+              if (_isProcessing)
                 const Center(child: CircularProgressIndicator()),
               if (_llmResponse != null) ...[
                 const SizedBox(height: 24),
@@ -130,10 +132,11 @@ class _SpeechScreenState extends State<SpeechScreen> {
                   ),
                 ),
               ],
+              const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _text != 'Presiona el botón y comienza a hablar' 
-                  ? _sendToLLM 
-                  : null,
+                onPressed: _text != 'Presiona el botón y comienza a hablar' && !_isProcessing
+                    ? () => _enviarTextoAlLLM(_text)
+                    : null,
                 child: const Text('Enviar a LLM'),
               ),
             ],
@@ -163,13 +166,10 @@ class _SpeechScreenState extends State<SpeechScreen> {
               }
 
               final lowerText = _text.toLowerCase();
-
               if (_palabrasNegativas.any((p) => lowerText.contains(p))) {
                 _backgroundColor = Colors.red.shade100;
                 Vibration.hasVibrator().then((hasVibrator) {
-                  if (hasVibrator) {
-                    Vibration.vibrate(duration: 500);
-                  }
+                  if (hasVibrator) Vibration.vibrate(duration: 500);
                 });
               } else if (_palabrasPositivas.any((p) => lowerText.contains(p))) {
                 _backgroundColor = Colors.green.shade100;
@@ -186,41 +186,65 @@ class _SpeechScreenState extends State<SpeechScreen> {
     }
   }
 
-  Future<void> _sendToLLM() async {
-  if (_text.isEmpty || _text == 'Presiona el botón y comienza a hablar') return;
-
-  setState(() {
-    _isProcessing = true;
-    _llmResponse = null;
-  });
-
-  try {
-    // Simulamos respuesta de LLM
-    await Future.delayed(const Duration(seconds: 2));
-    final response = 'Respuesta del LLM para: "$_text" usando prompt: "${widget.prompt}"';
-
+  Future<void> _enviarTextoAlLLM(String prompt) async {
     setState(() {
-      _llmResponse = response;
-      _isProcessing = false;
+      _isProcessing = true;
+      _llmResponse = null;
     });
 
-    // Guardar en Firestore solo si hay un usuario autenticado
+    final url = Uri.parse("https://openrouter.ai/api/v1/chat/completions");
+    final headers = {
+      'Authorization':
+          'Bearer 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',
+      'Content-Type': 'application/json',
+      'HTTP-Referer': 'https://writevibe.app',
+      'X-Title': 'WriteVibeAssistant',
+    };
+    final body = jsonEncode({
+      "model": "deepseek/deepseek-chat:free",
+      "messages": [
+        {
+          "role": "system",
+          "content":
+              "Responde brevemente maximo 2 oraciones, no uses caracteres especiales, no uses emojis, no uses comillas, no uses guiones, no uses puntos ni comas. Responde como un asistente de escritura que ayuda a los usuarios a mejorar sus ideas y textos."
+        },
+        {"role": "user", "content": prompt}
+      ]
+    });
+
     try {
-      await HistoryService().savePromptHistory(
-        recognizedText: _text,
-        prompt: widget.prompt,
-        llmResponse: response,
-      );
+      final response = await http.post(url, headers: headers, body: body);
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(utf8.decode(response.bodyBytes));
+        final llmResult = decoded['choices'][0]['message']['content'];
+        setState(() {
+          _llmResponse = llmResult;
+          _isProcessing = false;
+        });
+
+        // Guardar en historial
+        try {
+          await HistoryService().savePromptHistory(
+            recognizedText: prompt,
+            prompt: widget.prompt,
+            llmResponse: llmResult,
+          );
+        } catch (e) {
+          debugPrint('No se guardó historial: $e');
+        }
+      } else {
+        setState(() {
+          _llmResponse = "Error al generar respuesta:\n${response.body}";
+          _isProcessing = false;
+        });
+        debugPrint("Error API: ${response.statusCode}");
+      }
     } catch (e) {
-      debugPrint('No se guardó historial: $e');
+      setState(() {
+        _llmResponse = 'Error al procesar la solicitud: $e';
+        _isProcessing = false;
+      });
     }
-
-  } catch (e) {
-    setState(() {
-      _llmResponse = 'Error al procesar con LLM: $e';
-      _isProcessing = false;
-    });
   }
-}
-
 }
